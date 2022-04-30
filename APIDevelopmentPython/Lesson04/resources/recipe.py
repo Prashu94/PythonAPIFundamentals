@@ -5,20 +5,22 @@ from http import HTTPStatus
 from models.recipe import Recipe, recipe_list
 
 
+# Class Representation for adding Recipe data to recipe_list, get the data from the recipe_list
+# Extends the Resource class from flask_restful to avoid adding @app.route method to each method.
 class RecipeListResource(Resource):
 
-    # method to get the data of only published recipe
+    # method to get the data of only published resources
     def get(self):
 
         data = []
 
         for recipe in recipe_list:
-            if recipe.is_publish is True:
+            if recipe.is_published is True:
                 data.append(recipe.data)
 
-        return {'data':data}, HTTPStatus.OK
+        return {'data': data}, HTTPStatus.OK
 
-    # method to insert the data into the recipe_list
+    # method to post the data to the database
     def post(self):
 
         data = request.get_json()
@@ -30,30 +32,37 @@ class RecipeListResource(Resource):
                         directions=data['directions'])
 
         recipe_list.append(recipe)
-        return recipe.data, HTTPStatus.CREATED
+        return recipe.data, HTTPStatus.OK
 
 
+# Class Representation to get, put, delete individual record from the database
+# Extends the Resource class to avoid the @app.routes annotation
 class RecipeResource(Resource):
 
-    # Get Method of REST API with respect to recipe_id
+    # Get Method to get the specific recipe_id
     def get(self, recipe_id):
+        # Loop through the recipe_list
         recipe = next((recipe for recipe in recipe_list if recipe.id == recipe_id and recipe.is_publish == True), None)
 
+        # check if None
         if recipe is None:
-            return {'message':'recipe is not found'}, HTTPStatus.NOT_FOUND
+            return {'message': 'recipe is not found'}, HTTPStatus.NOT_FOUND
 
         return recipe.data, HTTPStatus.OK
 
-    # update method of Rest API with respect to recipe_id
+    # Update method to update the specific recipe_id in the list
     def put(self, recipe_id):
 
+        # Get the data to be updated
         data = request.get_json()
 
+        # Get The existing recipe from the database
         recipe = next((recipe for recipe in recipe_list if recipe.id == recipe_id), None)
 
         if recipe is None:
             return {'message': 'recipe is not found'}, HTTPStatus.NOT_FOUND
 
+        # Else update the required parameters of the recipe object
         recipe.name = data['name']
         recipe.description = data['description']
         recipe.num_of_servings = data['num_of_servings']
@@ -62,9 +71,9 @@ class RecipeResource(Resource):
 
         return recipe.data, HTTPStatus.OK
 
-
-    # delete method of the REST API with respect to recipe id
+    # Delete method to delete the specific id from the list
     def delete(self, recipe_id):
+
         recipe = next((recipe for recipe in recipe_list if recipe.id == recipe_id), None)
 
         if recipe is None:
@@ -74,26 +83,33 @@ class RecipeResource(Resource):
 
         return {}, HTTPStatus.NO_CONTENT
 
+
+# Class Representation for Publishing the resource to the database
+# Extends the Resource class to avoid @app.route method on each annotation
 class RecipePublishResource(Resource):
 
-    # update method to update is_publish attribute
+    # Update the is_publish flag in the recipe object for the specific resource
     def put(self, recipe_id):
-        recipe = next((recipe for recipe in recipe_list if recipe.id == recipe_id),None)
+        # Get the specific recipe from the list
+        recipe = next((recipe for recipe in recipe_list if recipe.id == recipe_id), None)
 
         if recipe is None:
-            return {'message':'recipe is not found'}, HTTPStatus.NOT_FOUND
+            return {'message': 'recipe is not found'}, HTTPStatus.NOT_FOUND
 
         recipe.is_publish = True
         return {}, HTTPStatus.NO_CONTENT
 
-    # delete method to set the is_publish to false
+    # Delete method to set the is_publish to false
     def delete(self, recipe_id):
-
+        # Get the specific recipe from the list
         recipe = next((recipe for recipe in recipe_list if recipe.id == recipe_id), None)
 
         if recipe is None:
-            return {'message':'recipe not found'}, HTTPStatus.NOT_FOUND
+            return {'message':'recipe is not found'}, HTTPStatus.NOT_FOUND
 
         recipe.is_publish = False
-
         return {}, HTTPStatus.NO_CONTENT
+
+
+
+

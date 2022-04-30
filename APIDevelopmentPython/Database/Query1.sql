@@ -4,6 +4,9 @@ use smilecook;
 -- flask db upgrade - will run the python code in the version folder and create the database tables.
 select * from user;
 select * from recipe;
+
+drop table user;
+drop table recipe;
 -- one user can have many recipes
 /*
 - Recipe class will contain the foreign key relation to user (user_id = db.Column(db.Integer(), db.ForeignKey("user.id")))
